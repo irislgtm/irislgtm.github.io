@@ -14,7 +14,7 @@ except ImportError:
 CONTENT = Path("content")
 OUT = Path("docs")
 FONT_SRC = Path("static/calling_code/CallingCode-Regular.ttf")
-IMAGE_SRC = Path("static/iris-art.png")
+IMAGE_SRC = Path("static/irislgtm.png")
 
 def parse_post(path):
     raw = path.read_text("utf-8")
@@ -47,13 +47,13 @@ ARROWS_SVG = make_arrows()
 EMBED = """<meta property="og:title" content="iris's blog">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://irislgtm.github.io/">
-<meta property="og:image" content="https://irislgtm.github.io/iris-art.png">
+<meta property="og:image" content="https://irislgtm.github.io/irislgtm.png">
 <meta property="og:image:type" content="image/png">
-<meta property="og:image:width" content="880">
-<meta property="og:image:height" content="310">
+<meta property="og:image:width" content="1788">
+<meta property="og:image:height" content="631">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="iris's blog">
-<meta name="twitter:image" content="https://irislgtm.github.io/iris-art.png">"""
+<meta name="twitter:image" content="https://irislgtm.github.io/irislgtm.png">"""
 
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}

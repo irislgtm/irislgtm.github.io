@@ -17,7 +17,7 @@ I have a.. moderate interest in literature and science (not all encompassing lik
 
 I'm not sure why I enjoy it. It feels satisfying to see someone enjoying what i've made, and games are one of the more easily-accessible mediums for this feeling. I mean, if i had time to bake cookies for all my friends, i would do that too, it's basically the same feeling.
 
-Being queer here in this country is not a very good experience, so i usually just interact socially online. I have a couple good friends, like siepert and tam, but i generally prefer to interact with people online over offline.
+Being queer here in this country is not a very good experience, so i usually just interact socially online. I have a couple good friends, like siepert, freddy, and tam but i generally prefer to interact with people online over offline.
 
 That doesn't mean that i don't want to meet my friends IRL; There is something intrinsic about meeting someone like that, that text on a screen, no matter how touching, can quench; However, beggars cannot be choosers, so i am stuck here.
 
