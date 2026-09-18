@@ -42,7 +42,7 @@ def make_arrows():
     tails = [(400 + (i - 1) * s * p, (i - 1) * s * p) for i in range(3)]
     body = "".join(f'<g transform="translate({x:.1f},{y:.1f}) rotate(-45)">{arrow}</g>' for x, y in tails)
     return ('<svg style="position:fixed;top:0;right:0;width:80vmin;height:80vmin;z-index:-1;pointer-events:none" viewBox="0 0 400 400" '
-            f'xmlns="http://www.w3.org/2000/svg"><g fill="#2a2a2a">{body}</g></svg>')
+            f'xmlns="http://www.w3.org/2000/svg"><g fill="#1aff00">{body}</g></svg>')
 
 ARROWS_SVG = make_arrows()
 
@@ -66,9 +66,9 @@ BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
 
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
-body{background:#0d0d0d;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
+body{background:#2c2c2c;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
 input{background:#1a1a1a;color:#ccc;border:1px solid #333;padding:0.4rem;font-family:inherit}
-a{color:#b57edc}
+a{color:#1aff00}
 #gh{position:fixed;bottom:1rem;right:1rem}
 #badge{position:fixed;bottom:1rem;left:1rem}
 #badge img{display:block;image-rendering:pixelated}
