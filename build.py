@@ -15,6 +15,7 @@ CONTENT = Path("content")
 OUT = Path("docs")
 FONT_SRC = Path("static/calling_code/CallingCode-Regular.ttf")
 IMAGE_SRC = Path("static/irislgtm.png")
+FAVICON_SRC = Path("static/favicon.png")
 
 def parse_post(path):
     raw = path.read_text("utf-8")
@@ -39,7 +40,7 @@ def make_arrows():
     arrow = f'<polygon points="{pts}"/>'
     tails = [(400 + (i - 1) * s * p, (i - 1) * s * p) for i in range(3)]
     body = "".join(f'<g transform="translate({x:.1f},{y:.1f}) rotate(-45)">{arrow}</g>' for x, y in tails)
-    return ('<svg style="position:fixed;top:0;right:0;width:80vmin;height:80vmin" viewBox="0 0 400 400" '
+    return ('<svg style="position:fixed;top:0;right:0;width:80vmin;height:80vmin;z-index:-1;pointer-events:none" viewBox="0 0 400 400" '
             f'xmlns="http://www.w3.org/2000/svg"><g fill="#2a2a2a">{body}</g></svg>')
 
 ARROWS_SVG = make_arrows()
@@ -55,11 +56,16 @@ EMBED = """<meta property="og:title" content="iris's blog">
 <meta name="twitter:title" content="iris's blog">
 <meta name="twitter:image" content="https://irislgtm.github.io/irislgtm.png">"""
 
+FAVICON = '<link rel="icon" type="image/png" href="favicon.png">'
+
+GH_LINK = '<a id="gh" href="https://github.com/irislgtm">github</a>'
+
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
 body{background:#0d0d0d;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
 input{background:#1a1a1a;color:#ccc;border:1px solid #333;padding:0.4rem;font-family:inherit}
 a{color:#b57edc}
+#gh{position:fixed;bottom:1rem;right:1rem}
 </style>"""
 
 def build():
@@ -69,6 +75,8 @@ def build():
         shutil.copy2(FONT_SRC, OUT / "static" / FONT_SRC.name)
     if IMAGE_SRC.exists():
         shutil.copy2(IMAGE_SRC, OUT / IMAGE_SRC.name)
+    if FAVICON_SRC.exists():
+        shutil.copy2(FAVICON_SRC, OUT / FAVICON_SRC.name)
     posts = sorted(
         [parse_post(p) for p in CONTENT.glob("*.md") if p.stem != "index"],
         key=lambda x: x["date"],
@@ -84,6 +92,7 @@ def build():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iris's blog</title>
+{FAVICON}
 {EMBED}
 {STYLE}
 </head>
@@ -92,6 +101,7 @@ def build():
 <input type="text" id="q" placeholder="search..." oninput="filter()">
 <ul id="posts">{items}</ul>
 {ARROWS_SVG}
+{GH_LINK}
 <script>
 function filter(){{
   var q=document.getElementById('q').value.toLowerCase();
@@ -112,6 +122,7 @@ function filter(){{
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{p['title']}</title>
+{FAVICON}
 {EMBED}
 {STYLE}
 </head>
@@ -120,6 +131,7 @@ function filter(){{
 <h1>{p['title']}</h1>
 <time>{p['date']}</time>
 {p['html']}
+{GH_LINK}
 </body>
 </html>"""
         (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
