@@ -14,6 +14,7 @@ except ImportError:
 CONTENT = Path("content")
 OUT = Path("docs")
 FONT_SRC = Path("static/calling_code/CallingCode-Regular.ttf")
+IMAGE_SRC = Path("static/iris.png")
 
 def parse_post(path):
     raw = path.read_text("utf-8")
@@ -43,6 +44,12 @@ def make_arrows():
 
 ARROWS_SVG = make_arrows()
 
+EMBED = """<meta property="og:title" content="iris's blog">
+<meta property="og:image" content="https://irislgtm.github.io/iris.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="iris's blog">
+<meta name="twitter:image" content="https://irislgtm.github.io/iris.png">"""
+
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
 body{background:#0d0d0d;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
@@ -55,6 +62,8 @@ def build():
     (OUT / "static").mkdir(exist_ok=True)
     if FONT_SRC.exists():
         shutil.copy2(FONT_SRC, OUT / "static" / FONT_SRC.name)
+    if IMAGE_SRC.exists():
+        shutil.copy2(IMAGE_SRC, OUT / IMAGE_SRC.name)
     posts = sorted(
         [parse_post(p) for p in CONTENT.glob("*.md") if p.stem != "index"],
         key=lambda x: x["date"],
@@ -70,6 +79,7 @@ def build():
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>iris's blog</title>
+{EMBED}
 {STYLE}
 </head>
 <body>
@@ -97,6 +107,7 @@ function filter(){{
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{p['title']}</title>
+{EMBED}
 {STYLE}
 </head>
 <body>
