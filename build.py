@@ -16,6 +16,7 @@ OUT = Path("docs")
 FONT_SRC = Path("static/calling_code/CallingCode-Regular.ttf")
 IMAGE_SRC = Path("static/irislgtm.png")
 FAVICON_SRC = Path("static/favicon.png")
+BADGE_SRC = Path("static/badge.webp")
 
 def parse_post(path):
     raw = path.read_text("utf-8")
@@ -60,12 +61,17 @@ FAVICON = '<link rel="icon" type="image/png" href="favicon.png">'
 
 GH_LINK = '<a id="gh" href="https://github.com/irislgtm">github</a>'
 
+BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
+         '<img src="badge.webp" alt="iris-lgtm" width="88" height="31"></a>')
+
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
 body{background:#0d0d0d;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
 input{background:#1a1a1a;color:#ccc;border:1px solid #333;padding:0.4rem;font-family:inherit}
 a{color:#b57edc}
 #gh{position:fixed;bottom:1rem;right:1rem}
+#badge{position:fixed;bottom:1rem;left:1rem}
+#badge img{display:block;image-rendering:pixelated}
 </style>"""
 
 def build():
@@ -77,6 +83,8 @@ def build():
         shutil.copy2(IMAGE_SRC, OUT / IMAGE_SRC.name)
     if FAVICON_SRC.exists():
         shutil.copy2(FAVICON_SRC, OUT / FAVICON_SRC.name)
+    if BADGE_SRC.exists():
+        shutil.copy2(BADGE_SRC, OUT / BADGE_SRC.name)
     posts = sorted(
         [parse_post(p) for p in CONTENT.glob("*.md") if p.stem != "index"],
         key=lambda x: x["date"],
@@ -102,6 +110,7 @@ def build():
 <ul id="posts">{items}</ul>
 {ARROWS_SVG}
 {GH_LINK}
+{BADGE}
 <script>
 function filter(){{
   var q=document.getElementById('q').value.toLowerCase();
@@ -132,6 +141,7 @@ function filter(){{
 <time>{p['date']}</time>
 {p['html']}
 {GH_LINK}
+{BADGE}
 </body>
 </html>"""
         (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
