@@ -69,6 +69,7 @@ STYLE = """<style>
 body{background:#2c2c2c;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
 input{background:#1a1a1a;color:#ccc;border:1px solid #333;padding:0.4rem;font-family:inherit}
 a{color:#1aff00}
+#page{mix-blend-mode:difference;color:#1aff00}
 #gh{position:fixed;bottom:1rem;right:1rem}
 #badge{position:fixed;bottom:1rem;left:1rem}
 #badge img{display:block;image-rendering:pixelated}
@@ -105,9 +106,11 @@ def build():
 {STYLE}
 </head>
 <body>
+<div id="page">
 <h1>iris's blog</h1>
 <input type="text" id="q" placeholder="search..." oninput="filter()">
 <ul id="posts">{items}</ul>
+</div>
 {ARROWS_SVG}
 {GH_LINK}
 {BADGE}
@@ -136,10 +139,12 @@ function filter(){{
 {STYLE}
 </head>
 <body>
+<div id="page">
 <a href="index.html">&larr; back</a>
 <h1>{p['title']}</h1>
 <time>{p['date']}</time>
 {p['html']}
+</div>
 {GH_LINK}
 {BADGE}
 </body>
