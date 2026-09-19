@@ -67,10 +67,10 @@ BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
 body{background:#2c2c2c;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
-input{background:#1f1f1f;color:#17c700;border:1px solid #17c700;padding:0.4rem;font-family:inherit}
+input{background:#1f1f1f;color:#39ff14;border:1px solid #39ff14;padding:0.4rem;font-family:inherit}
 input::placeholder{color:#4e7a4e}
-a{color:#17c700}
-.blend{mix-blend-mode:difference;color:#17c700}
+a{color:#39ff14}
+.blend{mix-blend-mode:difference;color:#39ff14}
 #gh{position:fixed;bottom:1rem;right:1rem}
 #badge{position:fixed;bottom:1rem;left:1rem}
 #badge img{display:block;image-rendering:pixelated}
