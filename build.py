@@ -46,6 +46,68 @@ def make_arrows():
 
 ARROWS_SVG = make_arrows()
 
+VORONOI = """<canvas id="voro"></canvas>
+<script>
+(function(){
+  var c=document.getElementById('voro'),x=c.getContext('2d');
+  var W=0,H=0,pts=[],N=0,last=0,STEP=1000/24;
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function resize(){
+    W=c.clientWidth;H=c.clientHeight;
+    c.width=W;c.height=H;
+    N=Math.max(8,Math.min(36,Math.round(W*H/30000)));
+    pts=[];
+    for(var i=0;i<N;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.16});
+  }
+  function clip(poly,nx,ny,cc){
+    var out=[],n=poly.length;
+    for(var k=0;k<n;k++){
+      var a=poly[k],b=poly[(k+1)%n];
+      var da=nx*a.x+ny*a.y-cc,db=nx*b.x+ny*b.y-cc,ina=da<=0,inb=db<=0;
+      if(ina)out.push(a);
+      if(ina!==inb){var t=da/(da-db);out.push({x:a.x+t*(b.x-a.x),y:a.y+t*(b.y-a.y)});}
+    }
+    return out;
+  }
+  function draw(){
+    x.clearRect(0,0,W,H);
+    var g=x.createLinearGradient(0,H,0,0);
+    g.addColorStop(0,'rgba(57,255,20,0.32)');
+    g.addColorStop(1,'rgba(57,255,20,0)');
+    x.strokeStyle=g;x.lineWidth=1;x.beginPath();
+    for(var i=0;i<N;i++){
+      var cell=[{x:-2,y:-2},{x:W+2,y:-2},{x:W+2,y:H+2},{x:-2,y:H+2}],pi=pts[i];
+      for(var j=0;j<N&&cell.length;j++){
+        if(j===i)continue;
+        var pj=pts[j],nx=pj.x-pi.x,ny=pj.y-pi.y;
+        var cc=(pj.x*pj.x+pj.y*pj.y-pi.x*pi.x-pi.y*pi.y)/2;
+        cell=clip(cell,nx,ny,cc);
+      }
+      if(cell.length<3)continue;
+      x.moveTo(cell[0].x,cell[0].y);
+      for(var k=1;k<cell.length;k++)x.lineTo(cell[k].x,cell[k].y);
+      x.closePath();
+    }
+    x.stroke();
+  }
+  function frame(now){
+    if(reduce)return;
+    requestAnimationFrame(frame);
+    if(now-last<STEP)return;
+    last=now;
+    for(var i=0;i<N;i++){
+      var p=pts[i];p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+    }
+    draw();
+  }
+  window.addEventListener('resize',function(){resize();if(reduce)draw();});
+  resize();
+  if(reduce)draw();else requestAnimationFrame(frame);
+})();
+</script>"""
+
 EMBED = """<meta property="og:title" content="iris's blog">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://irislgtm.github.io/">
@@ -66,12 +128,13 @@ BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
 
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
-body{background:#2c2c2c;color:#ccc;font-family:'CallingCode',monospace;padding:2rem}
-input{background:#1f1f1f;color:#39ff14;border:1px solid #39ff14;padding:0.4rem;font-family:inherit}
-input::placeholder{color:#4e7a4e}
+body{background:#2c2c2c;color:#e6e6e6;font-family:'CallingCode',monospace;padding:2rem}
+input{background:#1f1f1f;color:#39ff14;border:1px solid #39ff14;padding:0.4rem;font-family:inherit;mix-blend-mode:difference}
+input::placeholder{color:#5e9a5e}
 a{color:#39ff14}
 .blend{mix-blend-mode:difference;color:#39ff14}
-#gh{position:fixed;bottom:1rem;right:1rem}
+#voro{position:fixed;left:0;bottom:0;width:100%;height:34vh;z-index:-1;pointer-events:none}
+#gh{position:fixed;bottom:1rem;right:1rem;mix-blend-mode:difference}
 #badge{position:fixed;bottom:1rem;left:1rem}
 #badge img{display:block;image-rendering:pixelated}
 </style>"""
@@ -111,6 +174,7 @@ def build():
 <input type="text" id="q" placeholder="search..." oninput="filter()">
 <div class="blend"><ul id="posts">{items}</ul></div>
 {ARROWS_SVG}
+{VORONOI}
 {GH_LINK}
 {BADGE}
 <script>
@@ -144,6 +208,7 @@ function filter(){{
 <time>{p['date']}</time>
 {p['html']}
 </div>
+{VORONOI}
 {GH_LINK}
 {BADGE}
 </body>
