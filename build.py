@@ -55,7 +55,7 @@ VORONOI = """<canvas id="voro"></canvas>
   function resize(){
     W=c.clientWidth;H=c.clientHeight;
     c.width=W;c.height=H;
-    N=Math.max(8,Math.min(36,Math.round(W*H/30000)));
+    N=Math.max(10,Math.min(40,Math.round(W/55)));
     pts=[];
     for(var i=0;i<N;i++)pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.16,vy:(Math.random()-.5)*.16});
   }
@@ -126,17 +126,35 @@ GH_LINK = '<a id="gh" href="https://github.com/irislgtm">github</a>'
 BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
          '<img src="badge.webp" alt="iris-lgtm" width="88" height="31"></a>')
 
+FOOTER = '<footer id="bar">' + VORONOI + BADGE + GH_LINK + '</footer>'
+
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
-body{background:#2c2c2c;color:#e6e6e6;font-family:'CallingCode',monospace;padding:2rem}
+*{box-sizing:border-box}
+body{background:#2c2c2c;color:#e6e6e6;font-family:'CallingCode',monospace;line-height:1.6;padding:2rem 2rem 5rem}
 input{background:#1f1f1f;color:#39ff14;border:1px solid #39ff14;padding:0.4rem;font-family:inherit;mix-blend-mode:difference}
 input::placeholder{color:#5e9a5e}
 a{color:#39ff14}
 .blend{mix-blend-mode:difference;color:#39ff14}
-#voro{position:fixed;left:0;bottom:0;width:100%;height:34vh;z-index:-1;pointer-events:none}
-#gh{position:fixed;bottom:1rem;right:1rem;mix-blend-mode:difference}
-#badge{position:fixed;bottom:1rem;left:1rem}
+#bar{position:fixed;left:0;right:0;bottom:0;height:3.5rem;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:0 1rem;background:#1f1f1f;border-top:1px solid #2f6b2f}
+#voro{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
+#bar>a{position:relative;z-index:1}
+#gh{mix-blend-mode:difference}
 #badge img{display:block;image-rendering:pixelated}
+.post{max-width:66ch;margin:0 auto;font-size:1.06rem;line-height:1.8}
+.post h1{line-height:1.15;margin:0 0 .15em}
+.post time{display:block;opacity:.55;font-size:.85rem;margin-bottom:2em}
+.post p{margin:0 0 1.25em}
+.post h2{margin:2em 0 .5em;line-height:1.25}
+.post h3{margin:1.6em 0 .4em}
+.post ul,.post ol{padding-left:1.5em;margin:0 0 1.25em}
+.post li{margin:.4em 0}
+.post blockquote{margin:1.4em 0;padding-left:1em;border-left:2px solid #39ff14;opacity:.85}
+.post pre{background:#1f1f1f;padding:.9em 1em;overflow:auto;border-radius:4px}
+.post code{background:#1f1f1f;padding:.1em .35em;border-radius:3px}
+.post pre code{background:none;padding:0}
+.post img{max-width:100%;height:auto}
+.post a{text-decoration:underline;text-underline-offset:2px}
 </style>"""
 
 def build():
@@ -174,9 +192,7 @@ def build():
 <input type="text" id="q" placeholder="search..." oninput="filter()">
 <div class="blend"><ul id="posts">{items}</ul></div>
 {ARROWS_SVG}
-{VORONOI}
-{GH_LINK}
-{BADGE}
+{FOOTER}
 <script>
 function filter(){{
   var q=document.getElementById('q').value.toLowerCase();
@@ -202,15 +218,13 @@ function filter(){{
 {STYLE}
 </head>
 <body>
-<div class="blend">
+<div class="blend post">
 <a href="index.html">&larr; back</a>
 <h1>{p['title']}</h1>
 <time>{p['date']}</time>
 {p['html']}
 </div>
-{VORONOI}
-{GH_LINK}
-{BADGE}
+{FOOTER}
 </body>
 </html>"""
         (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
