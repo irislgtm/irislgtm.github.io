@@ -123,10 +123,12 @@ FAVICON = '<link rel="icon" type="image/png" href="favicon.png">'
 
 GH_LINK = '<a id="gh" href="https://github.com/irislgtm">github</a>'
 
+POETRY_LINK = '<a id="poetry" href="poetry/">poetry</a>'
+
 BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
          '<img src="badge.webp" alt="iris-lgtm" width="88" height="31"></a>')
 
-FOOTER = '<footer id="bar">' + VORONOI + BADGE + GH_LINK + '</footer>'
+FOOTER = '<footer id="bar">' + VORONOI + BADGE + POETRY_LINK + GH_LINK + '</footer>'
 
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
@@ -140,6 +142,7 @@ a{color:#39ff14}
 #voro{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
 #bar>a{position:relative;z-index:1}
 #gh{mix-blend-mode:difference}
+#poetry{mix-blend-mode:difference}
 #badge img{display:block;image-rendering:pixelated}
 .post{max-width:66ch;margin:0 auto;font-size:1.06rem;line-height:1.8}
 .post h1{line-height:1.15;margin:0 0 .15em}
