@@ -199,6 +199,7 @@ a{color:#39ff14}
 .post pre code{background:none;padding:0}
 .post img{max-width:100%;height:auto}
 .post a{text-decoration:underline;text-underline-offset:2px}
+.empty{opacity:.55}
 </style>"""
 
 def build():
@@ -227,8 +228,7 @@ def build():
             key=lambda x: x["date"],
             reverse=True,
         )
-        if entries:
-            sections.append({"name": name, "kind": kind, "entries": entries})
+        sections.append({"name": name, "kind": kind, "entries": entries})
 
     footer_html = make_footer(sections)
 
@@ -295,6 +295,10 @@ function filter(){{
             f'<li><a href="{e["slug"]}.html">{e["title"]}</a> ({e["date"]})</li>\n'
             for e in sec["entries"]
         )
+        if list_items:
+            list_body = f'<div class="blend"><ul>{list_items}</ul></div>'
+        else:
+            list_body = '<div class="blend"><p class="empty">nothing here yet.</p></div>'
         list_page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -307,7 +311,7 @@ function filter(){{
 </head>
 <body>
 <div class="blend"><a href="/">&larr; back</a><h1>{sec["name"]}</h1></div>
-<div class="blend"><ul>{list_items}</ul></div>
+{list_body}
 {footer_html}
 </body>
 </html>"""
