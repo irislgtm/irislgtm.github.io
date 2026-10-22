@@ -13,8 +13,15 @@ except ImportError:
     HAS_MD = False
 
 CONTENT = Path("content")
-POETRY = Path("poetry")
 OUT = Path("docs")
+
+# Each (directory, renderer) pair becomes its own list at /<directory>/
+# and one page per entry. Directories that are missing or empty are skipped.
+SECTIONS = [
+    ("poetry", "poem"),
+    ("artwork", "post"),
+    ("projects", "post"),
+]
 FONT_SRC = Path("static/calling_code/CallingCode-Regular.ttf")
 IMAGE_SRC = Path("static/irislgtm.png")
 FAVICON_SRC = Path("static/favicon.png")
@@ -50,19 +57,20 @@ def render_stanzas(body):
             out.append(f'<div class="stanza">{H.escape(st.strip(chr(10)))}</div>')
     return "\n".join(out)
 
-def parse_poem(path):
+def render_markdown(body):
+    return markdown.markdown(body, extensions=["extra"]) if HAS_MD else f"<pre>{body}</pre>"
+
+def parse_item(path):
     raw = path.read_text("utf-8")
     lines = raw.strip().split("\n")
     title = lines[0][2:].strip() if lines[0].startswith("# ") else path.stem
-    body = raw
-    if lines[0].startswith("# "):
-        body = "\n".join(lines[1:]).strip()
+    body = "\n".join(lines[1:]).strip() if lines[0].startswith("# ") else raw
     date = ""
     m = re.search(r"<!-- date:\s*(.+?)\s*-->", body)
     if m:
         date = m.group(1).strip()
-        body = body[:m.start()] + body[m.end():]
-    return {"title": title, "date": date, "slug": path.stem, "stanzas": render_stanzas(body)}
+        body = (body[:m.start()] + body[m.end():]).strip()
+    return {"title": title, "date": date, "slug": path.stem, "body": body}
 
 def make_arrows():
     t, b, l, s = 44, 68, 280, 80
@@ -150,17 +158,21 @@ EMBED = """<meta property="og:title" content="iris's blog">
 <meta name="twitter:title" content="iris's blog">
 <meta name="twitter:image" content="https://irislgtm.github.io/irislgtm.png">"""
 
-FAVICON = '<link rel="icon" type="image/png" href="favicon.png">'
+FAVICON = '<link rel="icon" type="image/png" href="/favicon.png">'
 
 GH_LINK = '<a id="gh" href="https://github.com/irislgtm">github</a>'
 
 BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
-         '<img src="badge.webp" alt="iris-lgtm" width="88" height="31"></a>')
+         '<img src="/badge.webp" alt="iris-lgtm" width="88" height="31"></a>')
 
-FOOTER = '<footer id="bar">' + VORONOI + BADGE + GH_LINK + '</footer>'
+def make_footer(sections):
+    links = "".join(
+        f'<a class="sec" href="/{s["name"]}/">{s["name"]}</a>' for s in sections
+    )
+    return '<footer id="bar">' + VORONOI + BADGE + links + GH_LINK + '</footer>'
 
 STYLE = """<style>
-@font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
+@font-face{font-family:'CallingCode';src:url('/static/CallingCode-Regular.ttf') format('truetype')}
 *{box-sizing:border-box}
 body{background:#2c2c2c;color:#e6e6e6;font-family:'CallingCode',monospace;line-height:1.6;padding:2rem 2rem 5rem}
 input{background:#1f1f1f;color:#39ff14;border:1px solid #39ff14;padding:0.4rem;font-family:inherit;mix-blend-mode:difference}
@@ -171,6 +183,7 @@ a{color:#39ff14}
 #voro{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
 #bar>a{position:relative;z-index:1}
 #gh{mix-blend-mode:difference}
+#bar a.sec{mix-blend-mode:difference}
 #badge img{display:block;image-rendering:pixelated}
 .post{max-width:66ch;margin:0 auto;font-size:1.06rem;line-height:1.8}
 .post h1{line-height:1.15;margin:0 0 .15em}
@@ -204,24 +217,24 @@ def build():
         key=lambda x: x["date"],
         reverse=True,
     )
-    poems = sorted(
-        [parse_poem(p) for p in POETRY.glob("*.md")],
-        key=lambda x: x["date"],
-        reverse=True,
-    )
+    sections = []
+    for name, kind in SECTIONS:
+        src = Path(name)
+        if not src.is_dir():
+            continue
+        entries = sorted(
+            [parse_item(p) for p in src.glob("*.md")],
+            key=lambda x: x["date"],
+            reverse=True,
+        )
+        if entries:
+            sections.append({"name": name, "kind": kind, "entries": entries})
 
-    seen = set()
-    for item in posts + poems:
-        if item["slug"] in seen:
-            raise SystemExit(f"slug collision: {item['slug']}")
-        seen.add(item["slug"])
+    footer_html = make_footer(sections)
 
-    entries = [(p["date"], p["slug"], p["title"]) for p in posts + poems]
-    entries.sort(reverse=True)
-    items = "".join(
-        f'<li><a href="{slug}.html">{title}</a> ({date})</li>\n'
-        for date, slug, title in entries
-    )
+    items = ""
+    for p in posts:
+        items += f'<li><a href="{p["slug"]}.html">{p["title"]}</a> ({p["date"]})</li>\n'
 
     index = f"""<!DOCTYPE html>
 <html lang="en">
@@ -238,7 +251,7 @@ def build():
 <input type="text" id="q" placeholder="search..." oninput="filter()">
 <div class="blend"><ul id="posts">{items}</ul></div>
 {ARROWS_SVG}
-{FOOTER}
+{footer_html}
 <script>
 function filter(){{
   var q=document.getElementById('q').value.toLowerCase();
@@ -270,36 +283,70 @@ function filter(){{
 <time>{p['date']}</time>
 {p['html']}
 </div>
-{FOOTER}
+{footer_html}
 </body>
 </html>"""
         (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
 
-    for p in poems:
-        page = f"""<!DOCTYPE html>
+    for sec in sections:
+        outdir = OUT / sec["name"]
+        outdir.mkdir(exist_ok=True)
+        list_items = "".join(
+            f'<li><a href="{e["slug"]}.html">{e["title"]}</a> ({e["date"]})</li>\n'
+            for e in sec["entries"]
+        )
+        list_page = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{p['title']}</title>
+<title>{sec["name"]}</title>
 {FAVICON}
 {EMBED}
 {STYLE}
-{POEM_CSS}
 </head>
 <body>
-<div class="blend poem">
-<a href="index.html">&larr; back</a>
-<h1>{p['title']}</h1>
-<time>{p['date']}</time>
-{p['stanzas']}
-</div>
-{FOOTER}
+<div class="blend"><a href="/">&larr; back</a><h1>{sec["name"]}</h1></div>
+<div class="blend"><ul>{list_items}</ul></div>
+{footer_html}
 </body>
 </html>"""
-        (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
+        (outdir / "index.html").write_text(list_page, "utf-8")
 
-    print(f"built {len(posts)} posts + {len(poems)} poems to {OUT}/")
+        for e in sec["entries"]:
+            if sec["kind"] == "poem":
+                body_html = render_stanzas(e["body"])
+                extra_css = POEM_CSS
+                cls = "poem"
+            else:
+                body_html = render_markdown(e["body"])
+                extra_css = ""
+                cls = "post"
+            page = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{e['title']}</title>
+{FAVICON}
+{EMBED}
+{STYLE}
+{extra_css}
+</head>
+<body>
+<div class="blend {cls}">
+<a href="index.html">&larr; back</a>
+<h1>{e['title']}</h1>
+<time>{e['date']}</time>
+{body_html}
+</div>
+{footer_html}
+</body>
+</html>"""
+            (outdir / f"{e['slug']}.html").write_text(page, "utf-8")
+
+    total = sum(len(s["entries"]) for s in sections)
+    print(f"built {len(posts)} posts and {total} entries in {len(sections)} section(s) to {OUT}/")
 
 if __name__ == "__main__":
     build()
