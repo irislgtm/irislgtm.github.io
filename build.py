@@ -3,6 +3,7 @@ import os
 import re
 import math
 import shutil
+import html as H
 from pathlib import Path
 
 try:
@@ -12,6 +13,7 @@ except ImportError:
     HAS_MD = False
 
 CONTENT = Path("content")
+POETRY = Path("poetry")
 OUT = Path("docs")
 FONT_SRC = Path("static/calling_code/CallingCode-Regular.ttf")
 IMAGE_SRC = Path("static/irislgtm.png")
@@ -32,6 +34,35 @@ def parse_post(path):
         body = "\n".join(lines[1:]).strip()
     html = markdown.markdown(body, extensions=["extra"]) if HAS_MD else f"<pre>{body}</pre>"
     return {"title": title, "date": date, "slug": path.stem, "html": html}
+
+POEM_CSS = """<style>
+.poem{max-width:40rem;margin:0 auto}
+.poem h1{line-height:1.15;margin:0 0 .15em}
+.poem time{display:block;opacity:.55;font-size:.85rem;margin-bottom:2.4em}
+.poem .stanza{white-space:pre-wrap;margin:0 0 1.8em;font-size:1.12rem;line-height:2}
+.poem .stanza:last-child{margin-bottom:0}
+</style>"""
+
+def render_stanzas(body):
+    out = []
+    for st in re.split(r"\n[ \t]*\n+", body.strip()):
+        if st.strip():
+            out.append(f'<div class="stanza">{H.escape(st.strip(chr(10)))}</div>')
+    return "\n".join(out)
+
+def parse_poem(path):
+    raw = path.read_text("utf-8")
+    lines = raw.strip().split("\n")
+    title = lines[0][2:].strip() if lines[0].startswith("# ") else path.stem
+    body = raw
+    if lines[0].startswith("# "):
+        body = "\n".join(lines[1:]).strip()
+    date = ""
+    m = re.search(r"<!-- date:\s*(.+?)\s*-->", body)
+    if m:
+        date = m.group(1).strip()
+        body = body[:m.start()] + body[m.end():]
+    return {"title": title, "date": date, "slug": path.stem, "stanzas": render_stanzas(body)}
 
 def make_arrows():
     t, b, l, s = 44, 68, 280, 80
@@ -123,12 +154,10 @@ FAVICON = '<link rel="icon" type="image/png" href="favicon.png">'
 
 GH_LINK = '<a id="gh" href="https://github.com/irislgtm">github</a>'
 
-POETRY_LINK = '<a id="poetry" href="poetry/">poetry</a>'
-
 BADGE = ('<a id="badge" href="https://irislgtm.github.io/">'
          '<img src="badge.webp" alt="iris-lgtm" width="88" height="31"></a>')
 
-FOOTER = '<footer id="bar">' + VORONOI + BADGE + POETRY_LINK + GH_LINK + '</footer>'
+FOOTER = '<footer id="bar">' + VORONOI + BADGE + GH_LINK + '</footer>'
 
 STYLE = """<style>
 @font-face{font-family:'CallingCode';src:url('static/CallingCode-Regular.ttf') format('truetype')}
@@ -142,7 +171,6 @@ a{color:#39ff14}
 #voro{position:absolute;inset:0;width:100%;height:100%;display:block;z-index:0;pointer-events:none}
 #bar>a{position:relative;z-index:1}
 #gh{mix-blend-mode:difference}
-#poetry{mix-blend-mode:difference}
 #badge img{display:block;image-rendering:pixelated}
 .post{max-width:66ch;margin:0 auto;font-size:1.06rem;line-height:1.8}
 .post h1{line-height:1.15;margin:0 0 .15em}
@@ -176,9 +204,24 @@ def build():
         key=lambda x: x["date"],
         reverse=True,
     )
-    items = ""
-    for p in posts:
-        items += f'<li><a href="{p["slug"]}.html">{p["title"]}</a> ({p["date"]})</li>\n'
+    poems = sorted(
+        [parse_poem(p) for p in POETRY.glob("*.md")],
+        key=lambda x: x["date"],
+        reverse=True,
+    )
+
+    seen = set()
+    for item in posts + poems:
+        if item["slug"] in seen:
+            raise SystemExit(f"slug collision: {item['slug']}")
+        seen.add(item["slug"])
+
+    entries = [(p["date"], p["slug"], p["title"]) for p in posts + poems]
+    entries.sort(reverse=True)
+    items = "".join(
+        f'<li><a href="{slug}.html">{title}</a> ({date})</li>\n'
+        for date, slug, title in entries
+    )
 
     index = f"""<!DOCTYPE html>
 <html lang="en">
@@ -232,7 +275,31 @@ function filter(){{
 </html>"""
         (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
 
-    print(f"built {len(posts)} posts to {OUT}/")
+    for p in poems:
+        page = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{p['title']}</title>
+{FAVICON}
+{EMBED}
+{STYLE}
+{POEM_CSS}
+</head>
+<body>
+<div class="blend poem">
+<a href="index.html">&larr; back</a>
+<h1>{p['title']}</h1>
+<time>{p['date']}</time>
+{p['stanzas']}
+</div>
+{FOOTER}
+</body>
+</html>"""
+        (OUT / f"{p['slug']}.html").write_text(page, "utf-8")
+
+    print(f"built {len(posts)} posts + {len(poems)} poems to {OUT}/")
 
 if __name__ == "__main__":
     build()

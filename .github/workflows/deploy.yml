@@ -30,9 +30,6 @@ jobs:
       - name: Build site
         run: python build.py
 
-      - name: Build poetry
-        run: python build_poetry.py
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
