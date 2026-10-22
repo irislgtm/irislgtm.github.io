@@ -80,7 +80,7 @@ def make_arrows():
     arrow = f'<polygon points="{pts}"/>'
     tails = [(400 + (i - 1) * s * p, (i - 1) * s * p) for i in range(3)]
     body = "".join(f'<g transform="translate({x:.1f},{y:.1f}) rotate(-45)">{arrow}</g>' for x, y in tails)
-    return ('<svg style="position:fixed;top:0;right:0;width:80vmin;height:80vmin;z-index:-1;pointer-events:none" viewBox="0 0 400 400" '
+    return ('<svg id="arrows" viewBox="0 0 400 400" '
             f'xmlns="http://www.w3.org/2000/svg"><g fill="#1aff00">{body}</g></svg>')
 
 ARROWS_SVG = make_arrows()
@@ -184,6 +184,7 @@ a{color:#39ff14}
 #bar>a{position:relative;z-index:1}
 #gh{mix-blend-mode:difference}
 #bar a.sec{mix-blend-mode:difference}
+#arrows{position:fixed;top:0;right:0;width:80vmin;height:80vmin;z-index:-1;pointer-events:none}
 #badge img{display:block;image-rendering:pixelated}
 .post{max-width:66ch;margin:0 auto;font-size:1.06rem;line-height:1.8}
 .post h1{line-height:1.15;margin:0 0 .15em}
@@ -200,6 +201,12 @@ a{color:#39ff14}
 .post img{max-width:100%;height:auto}
 .post a{text-decoration:underline;text-underline-offset:2px}
 .empty{opacity:.55}
+@media (max-width:600px){
+body{padding:1.25rem 1.25rem 5rem}
+#bar{gap:.4rem;padding:0 .75rem}
+#badge{display:none}
+#arrows{width:50vmin;height:50vmin;opacity:.5}
+}
 </style>"""
 
 def build():
