@@ -2,8 +2,10 @@
 import os
 import re
 import math
+import json
 import shutil
 import html as H
+from datetime import datetime, timezone
 from pathlib import Path
 
 try:
@@ -14,6 +16,8 @@ except ImportError:
 
 CONTENT = Path("content")
 OUT = Path("docs")
+TABLET_SRC = Path("tablet")
+FEED_SRC = Path("feed.json")
 
 # Each (directory, renderer) pair becomes its own list at /<directory>/
 # and one page per entry. Directories that are missing or empty are skipped.
@@ -220,6 +224,10 @@ def build():
         shutil.copy2(FAVICON_SRC, OUT / FAVICON_SRC.name)
     if BADGE_SRC.exists():
         shutil.copy2(BADGE_SRC, OUT / BADGE_SRC.name)
+    if FEED_SRC.exists():
+        shutil.copy2(FEED_SRC, OUT / FEED_SRC.name)
+    if TABLET_SRC.exists():
+        shutil.copytree(TABLET_SRC, OUT / TABLET_SRC.name, dirs_exist_ok=True)
     posts = sorted(
         [parse_post(p) for p in CONTENT.glob("*.md") if p.stem != "index"],
         key=lambda x: x["date"],
@@ -355,6 +363,27 @@ function filter(){{
 </body>
 </html>"""
             (outdir / f"{e['slug']}.html").write_text(page, "utf-8")
+
+    feed_posts = [
+        {
+            "id": p["slug"],
+            "title": p["title"],
+            "url": f'/{p["slug"]}.html',
+            "date": p["date"],
+            "author": "irislgtm",
+            "excerpt": re.sub(r"<[^>]+>", "", p["html"])[:180],
+            "image": "https://irislgtm.github.io/irislgtm.png",
+            "page": p["slug"],
+        }
+        for p in posts
+        if p["date"]
+    ]
+    feed = {
+        "schema": 1,
+        "generated": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "posts": feed_posts,
+    }
+    (OUT / "feed.json").write_text(json.dumps(feed, indent=2) + "\n", "utf-8")
 
     total = sum(len(s["entries"]) for s in sections)
     print(f"built {len(posts)} posts and {total} entries in {len(sections)} section(s) to {OUT}/")
